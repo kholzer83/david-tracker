@@ -428,39 +428,40 @@
     .nc-divider {
       height: 1px;
       background: var(--border);
-      margin: 20px 0;
+      margin: 16px 0;
     }
 
-    .nc-countdown { margin-top: auto; }
-
-    .nc-days {
-      font-family: 'Nunito', sans-serif;
-      font-size: 3.4rem;
-      font-weight: 900;
-      color: var(--accent2);
-      line-height: 1;
+    .nc-depart-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
-    .nc-days-label {
+    .nc-depart-badge {
       font-family: 'Nunito', sans-serif;
-      font-size: 0.68rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      color: var(--text-muted);
-      letter-spacing: 0.14em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-top: 3px;
+      background: var(--blue-light);
+      color: var(--accent2);
+      border: 1px solid #C0D6ED;
+      border-radius: 20px;
+      padding: 3px 10px;
+      white-space: nowrap;
     }
 
     .nc-depart-date {
       font-size: 0.82rem;
       color: var(--text-sub);
-      margin-top: 6px;
+      font-weight: 500;
     }
 
     .nc-stats {
       display: flex;
       gap: 10px;
-      margin-top: 16px;
+      margin-top: 0;
     }
 
     .nc-stat {
@@ -470,8 +471,8 @@
       text-align: center;
     }
 
-    .nc-stat--km   { background: var(--blue-light);  border: 1px solid #C0D6ED; }
-    .nc-stat--drive{ background: var(--terra-light); border: 1px solid #F0C4B6; }
+    .nc-stat--km    { background: var(--blue-light);  border: 1px solid #C0D6ED; }
+    .nc-stat--drive { background: var(--terra-light); border: 1px solid #F0C4B6; }
 
     .nc-stat-val {
       font-family: 'Nunito', sans-serif;
@@ -481,7 +482,7 @@
     }
 
     .nc-stat--km    .nc-stat-val { color: var(--accent2); }
-    .nc-stat--drive .nc-stat-val { color: var(--accent); }
+    .nc-stat--drive .nc-stat-val { color: var(--accent);  }
 
     .nc-stat-lbl {
       font-family: 'Inter', sans-serif;
@@ -492,6 +493,22 @@
       letter-spacing: 0.09em;
       margin-top: 4px;
     }
+
+    .nc-weather-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 8px 12px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .nc-weather-row .nc-wx-emoji { font-size: 1.1rem; }
+    .nc-weather-row .nc-wx-temp  { font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text); }
 
     /* ================================================================
        MAP
@@ -968,6 +985,11 @@
 
       <div class="nc-divider"></div>
 
+      <div class="nc-depart-row">
+        <div class="nc-depart-badge" id="nc-days-label">upcoming</div>
+        <div class="nc-depart-date"  id="nc-depart-date"></div>
+      </div>
+
       <div class="nc-stats" id="nc-stats" style="display:none">
         <div class="nc-stat nc-stat--km">
           <div class="nc-stat-val" id="nc-dist">--</div>
@@ -979,10 +1001,10 @@
         </div>
       </div>
 
-      <div class="nc-countdown">
-        <div class="nc-days"        id="nc-days">--</div>
-        <div class="nc-days-label"  id="nc-days-label">days until departure</div>
-        <div class="nc-depart-date" id="nc-depart-date"></div>
+      <div class="nc-weather-row" id="nc-next-weather" style="display:none">
+        <span class="nc-wx-emoji" id="nc-wx-emoji">🌤</span>
+        <span class="nc-wx-temp"  id="nc-wx-temp">--</span>
+        <span id="nc-wx-desc">--</span>
       </div>
     </div>
   </div>
@@ -1223,15 +1245,30 @@ function buildCards() {
   }
 
   if (daysUntil === 0) {
-    document.getElementById('nc-days').textContent       = 'TODAY';
-    document.getElementById('nc-days-label').textContent = 'checkout this morning';
+    document.getElementById('nc-days-label').textContent  = '🚗 departing today';
     document.getElementById('nc-depart-date').textContent = '';
   } else {
-    document.getElementById('nc-days').textContent       = daysUntil;
-    document.getElementById('nc-days-label').textContent = daysUntil === 1 ? 'day until departure' : 'days until departure';
+    document.getElementById('nc-days-label').textContent  = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
     document.getElementById('nc-depart-date').textContent = nextDate.toLocaleDateString('en-US', {
-      weekday: 'long', month: 'long', day: 'numeric'
+      weekday: 'short', month: 'long', day: 'numeric'
     });
+  }
+
+  // Weather for next stop
+  if (!isFlying) {
+    fetch(`https://wttr.in/${encodeURIComponent(next.city)}?format=j1`)
+      .then(r => r.json())
+      .then(d => {
+        const w    = d.current_condition[0];
+        const desc = w.weatherDesc[0].value;
+        const temp = w.temp_C;
+        const emoji = descToEmoji(desc);
+        document.getElementById('nc-wx-emoji').textContent = emoji;
+        document.getElementById('nc-wx-temp').textContent  = temp + '°C';
+        document.getElementById('nc-wx-desc').textContent  = desc;
+        document.getElementById('nc-next-weather').style.display = 'flex';
+      })
+      .catch(() => {});
   }
 }
 
@@ -1381,14 +1418,18 @@ function buildTimeline() {
     const cls    = isCur ? 'current' : isPast ? 'past' : 'future';
     const fly    = s.city === 'Flying home';
 
-    const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric'
-    });
+    const dateObj   = new Date(s.date + 'T12:00:00');
+    const weekday   = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+    const monthDay  = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const dateLabel = `${weekday}, ${monthDay}`;
+
+    const daysAway  = dayDiff(t, localDay(s.date));
 
     const badge = isCur ? '&#9679; HERE NOW'
       : isPast ? '&#10003; visited'
       : fly    ? '&#9992;&#65039; fly day'
-      : '&#9675; upcoming';
+      : daysAway === 1 ? '&#9675; tomorrow'
+      : `&#9675; in ${daysAway} days`;
 
     const cityDisplay = fly ? '&#9992;&#65039; Fly Home' : s.city;
 
