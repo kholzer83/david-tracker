@@ -1081,7 +1081,12 @@ function dayDiff(a, b) {
 
 function today() {
   const n = new Date();
-  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  // Location advances at 16:00 local time — David typically arrives ~4 PM
+  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (n.getHours() < 16) {
+    d.setDate(d.getDate() - 1);
+  }
+  return d;
 }
 
 function getCurrentAndNext() {
