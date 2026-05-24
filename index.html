@@ -109,34 +109,6 @@
       letter-spacing: 0.04em;
     }
 
-    .header-right {
-      text-align: right;
-      display: flex;
-      flex-direction: column;
-      gap: 1px;
-    }
-
-    .h-date {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      letter-spacing: 0.03em;
-    }
-
-    .h-vienna {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--accent2);
-    }
-
-    .h-vienna-label {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.6rem;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
 
     /* ================================================================
        LAYOUT
@@ -485,6 +457,42 @@
       margin-top: 6px;
     }
 
+    .nc-stats {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .nc-stat {
+      flex: 1;
+      border-radius: 12px;
+      padding: 11px 10px 10px;
+      text-align: center;
+    }
+
+    .nc-stat--km   { background: var(--blue-light);  border: 1px solid #C0D6ED; }
+    .nc-stat--drive{ background: var(--terra-light); border: 1px solid #F0C4B6; }
+
+    .nc-stat-val {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .nc-stat--km    .nc-stat-val { color: var(--accent2); }
+    .nc-stat--drive .nc-stat-val { color: var(--accent); }
+
+    .nc-stat-lbl {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      margin-top: 4px;
+    }
+
     /* ================================================================
        MAP
     ================================================================ */
@@ -830,10 +838,30 @@
     ================================================================ */
     @media (max-width: 860px) {
       .cards-row { grid-template-columns: 1fr; }
-      .header { flex-direction: column; align-items: flex-start; gap: 10px; }
-      .header-right { text-align: left; }
-      .main { padding: 20px 18px 32px; }
+      .main { padding: 16px 14px 32px; }
+
+      /* Header: keep row layout but shrink photo */
+      .header { padding: 12px 16px; gap: 10px; }
       .h-title { font-size: 1rem; }
+      .h-subtitle { font-size: 0.72rem; }
+      .h-hero-photo { width: 120px; height: 50px; border-radius: 8px; }
+
+      /* Status card: stack time blocks vertically */
+      .time-grid { grid-template-columns: 1fr; }
+
+      /* Map smaller on mobile */
+      #map { height: 280px; border-radius: 12px; }
+
+      /* Timeline */
+      .tl-stop { width: 140px; min-width: 140px; }
+      .tl-card  { width: 128px; }
+      .tl-drive { left: -70px; width: 140px; font-size: 0.55rem; }
+    }
+
+    @media (max-width: 480px) {
+      .header { padding: 10px 14px; }
+      .h-hero-photo { width: 100px; height: 44px; }
+      .card { padding: 18px 16px; }
     }
   </style>
 </head>
@@ -849,11 +877,6 @@
   </div>
   <div class="h-hero-photo" onclick="openLightbox('photos/Ferrari.jpeg')">
     <img src="photos/Ferrari.jpeg" alt="Ferrari on the road" />
-  </div>
-  <div class="header-right">
-    <div class="h-date" id="h-date">Saturday, May 23</div>
-    <div class="h-vienna" id="h-vienna">--:--:--</div>
-    <div class="h-vienna-label">Vienna Time</div>
   </div>
 </header>
 
@@ -929,6 +952,17 @@
       <div id="nc-hotel"   class="nc-hotel"></div>
 
       <div class="nc-divider"></div>
+
+      <div class="nc-stats" id="nc-stats" style="display:none">
+        <div class="nc-stat nc-stat--km">
+          <div class="nc-stat-val" id="nc-dist">--</div>
+          <div class="nc-stat-lbl">Distance</div>
+        </div>
+        <div class="nc-stat nc-stat--drive">
+          <div class="nc-stat-val" id="nc-drive-time">--</div>
+          <div class="nc-stat-lbl">Drive time</div>
+        </div>
+      </div>
 
       <div class="nc-countdown">
         <div class="nc-days"        id="nc-days">--</div>
@@ -1062,10 +1096,6 @@ function tickClocks() {
   const now = new Date();
   const { current } = getCurrentAndNext();
 
-  // Header
-  document.getElementById('h-date').textContent   = fmtDate(now, VIENNA_TZ);
-  document.getElementById('h-vienna').textContent = fmtTime(now, VIENNA_TZ);
-
   // Vienna block
   document.getElementById('tb-vienna').textContent      = fmtTime(now, VIENNA_TZ);
   document.getElementById('tb-vienna-date').textContent = fmtDate(now, VIENNA_TZ);
@@ -1168,6 +1198,14 @@ function buildCards() {
   document.getElementById('nc-city').textContent    = isFlying ? '✈️ Fly Home' : next.city;
   document.getElementById('nc-country').textContent = next.country;
   document.getElementById('nc-hotel').textContent   = next.hotel;
+
+  if (next.dist && next.drive && !isFlying) {
+    document.getElementById('nc-dist').textContent       = next.dist;
+    document.getElementById('nc-drive-time').textContent = next.drive;
+    document.getElementById('nc-stats').style.display    = 'flex';
+  } else {
+    document.getElementById('nc-stats').style.display = 'none';
+  }
 
   if (daysUntil === 0) {
     document.getElementById('nc-days').textContent       = 'TODAY';
