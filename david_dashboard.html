@@ -668,7 +668,7 @@
     .tl-inner::before {
       content: '';
       position: absolute;
-      top: 7px;
+      top: 46px;
       left: 20px;
       right: 20px;
       height: 2px;
@@ -686,11 +686,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 150px;
-      min-width: 150px;
+      width: 160px;
+      min-width: 160px;
       position: relative;
       z-index: 1;
       cursor: pointer;
+      padding-top: 39px;
     }
 
     /* Dots */
@@ -730,7 +731,7 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 12px;
-      width: 138px;
+      width: 148px;
       text-align: center;
       box-shadow: 0 1px 4px rgba(0,0,0,0.05);
       transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
@@ -792,33 +793,23 @@
     .tl-stop.future  .tl-badge { color: var(--text-muted); }
 
     .tl-drive {
+      position: absolute;
+      top: 6px;
+      left: -80px;
+      width: 160px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 6px;
-      font-size: 0.62rem;
+      gap: 1px;
+      font-size: 0.6rem;
       font-family: 'Inter', sans-serif;
       font-weight: 600;
-      border-top: 1px solid var(--border);
-      padding-top: 6px;
+      line-height: 1.35;
+      pointer-events: none;
     }
 
-    .tl-km {
-      color: var(--accent2);
-    }
-
-    .tl-hrs {
-      color: var(--accent);
-    }
-
-    .tl-drive-sep {
-      color: var(--text-muted);
-      font-weight: 400;
-    }
-
-    .tl-stop.past .tl-drive { border-top-color: #C2DAD0; }
-    .tl-stop.current .tl-drive { border-top-color: #f0c4b6; }
+    .tl-km  { color: var(--accent2); }
+    .tl-hrs { color: var(--accent); }
 
     /* ================================================================
        FOOTER
@@ -1341,21 +1332,20 @@ function buildTimeline() {
     const driveHtml = (s.dist && s.drive)
       ? `<div class="tl-drive">
            <span class="tl-km">${s.dist}</span>
-           <span class="tl-drive-sep">&middot;</span>
            <span class="tl-hrs">${s.drive}</span>
          </div>`
-      : '';
+      : `<div class="tl-drive"></div>`;
 
     const div = document.createElement('div');
     div.className = `tl-stop ${cls}`;
     div.id = `tl-${idx}`;
     div.innerHTML = `
+      ${driveHtml}
       <div class="tl-dot"></div>
       <div class="tl-card">
         <div class="tl-city">${cityDisplay}</div>
         <div class="tl-date">${dateLabel}</div>
         <div class="tl-badge">${badge}</div>
-        ${driveHtml}
       </div>`;
     inner.appendChild(div);
   });
