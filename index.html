@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>David's Road Trip 2026</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    /* ================================================================
+       RESET & VARIABLES
+    ================================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #F8F6F2;
+      --card:       #FFFFFF;
+      --card2:      #FBF9F7;
+      --border:     #E8E4DF;
+      --border-hi:  #D0CAC3;
+      --accent:     #E07A5F;   /* terracotta / dusty rose */
+      --accent2:    #3D7AB5;   /* steel blue */
+      --sage:       #81B29A;   /* sage green */
+      --sage-light: #EAF3EE;
+      --terra-light:#FEF3F0;
+      --blue-light: #EBF2FA;
+      --glow:       rgba(224,122,95,0.22);
+      --glow-sm:    rgba(224,122,95,0.10);
+      --text:       #2D2D2D;
+      --text-sub:   #6B6869;
+      --text-muted: #A8A29C;
+      --past-dot:   #81B29A;
+      --past-text:  #5A8A76;
+      --green:      #81B29A;
+      --purple:     #9B7FCA;
+      --shadow-sm:  0 1px 8px rgba(0,0,0,0.07);
+      --shadow-md:  0 4px 20px rgba(0,0,0,0.08);
+      --shadow-lg:  0 8px 32px rgba(0,0,0,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ================================================================
+       HEADER
+    ================================================================ */
+    .header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 12px rgba(0,0,0,0.06);
+      padding: 18px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-left { display: flex; flex-direction: column; gap: 3px; }
+
+    .h-hero-photo {
+      flex: 0 0 auto;
+      width: 200px;
+      height: 66px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .h-hero-photo:hover { transform: scale(1.02); box-shadow: var(--shadow-md); }
+    .h-hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 95%;
+    }
+
+    .h-title {
+      font-family: 'Nunito', sans-serif;
+      font-size: clamp(1rem, 2vw, 1.4rem);
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.01em;
+    }
+
+    .h-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .header-right {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .h-date {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .h-vienna {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .h-vienna-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ================================================================
+       LAYOUT
+    ================================================================ */
+    .main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px 36px 48px;
+    }
+
+    /* ================================================================
+       SECTION LABEL
+    ================================================================ */
+    .sec-label {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sec-label::before {
+      content: '';
+      width: 4px;
+      height: 15px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .sec-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ================================================================
+       CARDS ROW
+    ================================================================ */
+    .cards-row {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    /* ================================================================
+       CARD BASE
+    ================================================================ */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px 28px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-label {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ================================================================
+       CURRENT STATUS CARD
+    ================================================================ */
+    .status-card {
+      border-top: 3px solid var(--accent);
+      box-shadow: 0 4px 24px rgba(224,122,95,0.10), var(--shadow-sm);
+    }
+
+    .cs-city {
+      font-family: 'Nunito', sans-serif;
+      font-size: clamp(1.6rem, 3vw, 2.5rem);
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+
+    .cs-country {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .cs-hotel {
+      font-size: 0.84rem;
+      color: var(--text-sub);
+      margin-top: 12px;
+      padding: 9px 14px;
+      background: var(--sage-light);
+      border-left: 3px solid var(--sage);
+      border-radius: 0 8px 8px 0;
+      line-height: 1.4;
+    }
+
+    /* Time blocks */
+    .time-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .time-block {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .time-grid .time-block:first-child {
+      border-top: 2px solid var(--accent);
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: 12px;
+    }
+    .time-grid .time-block:last-child  { border-top: 2px solid var(--accent2); }
+
+    .tb-avatar {
+      flex-shrink: 0;
+      width: 58px;
+      align-self: stretch;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid var(--accent);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(224,122,95,0.2);
+    }
+    .tb-avatar:hover { transform: scale(1.04); box-shadow: 0 4px 14px rgba(224,122,95,0.35); }
+    .tb-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+    }
+
+    .tb-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .tb-label {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .tb-clock {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 5px;
+      letter-spacing: 0.02em;
+    }
+
+    .tb-date {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
+    .tb-offset {
+      font-size: 0.68rem;
+      color: var(--accent);
+      margin-top: 4px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+    }
+
+    /* Weather */
+    .weather-section {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .weather-main {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .w-icon {
+      font-size: 3rem;
+      line-height: 1;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+    }
+
+    .w-right { flex: 1; }
+
+    .w-temp {
+      font-family: 'Nunito', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .w-desc {
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
+    .w-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-top: 12px;
+    }
+
+    .w-pill {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .w-pill b {
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    /* Progress */
+    .prog-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .prog-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .prog-pct { color: var(--sage); }
+
+    .prog-bar {
+      height: 8px;
+      background: #EAE7E2;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .prog-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #5f9b84, #81B29A, #a8cdb9);
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ================================================================
+       NEXT STOP CARD
+    ================================================================ */
+    .next-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-top: 3px solid var(--accent2);
+      box-shadow: 0 4px 24px rgba(61,122,181,0.08), var(--shadow-sm);
+    }
+
+    .nc-city {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .nc-country {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.74rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .nc-hotel {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-top: 14px;
+      padding: 9px 13px;
+      background: var(--blue-light);
+      border-left: 3px solid var(--accent2);
+      border-radius: 0 6px 6px 0;
+      line-height: 1.4;
+    }
+
+    .nc-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    .nc-countdown { margin-top: auto; }
+
+    .nc-days {
+      font-family: 'Nunito', sans-serif;
+      font-size: 3.4rem;
+      font-weight: 900;
+      color: var(--accent2);
+      line-height: 1;
+    }
+
+    .nc-days-label {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .nc-depart-date {
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      margin-top: 6px;
+    }
+
+    /* ================================================================
+       MAP
+    ================================================================ */
+    .map-section { margin-bottom: 28px; }
+
+    #map {
+      height: 460px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Leaflet overrides — light theme */
+    .leaflet-popup-content-wrapper {
+      background: #FFFFFF !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      border-top: 3px solid var(--accent) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.12) !important;
+      padding: 0 !important;
+    }
+
+    .leaflet-popup-content {
+      margin: 0 !important;
+    }
+
+    .leaflet-popup-tip-container { display: none; }
+
+    .popup-inner { padding: 14px 18px; }
+
+    .popup-city {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .popup-hotel {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-top: 3px;
+    }
+
+    .popup-date {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.04em;
+    }
+
+    .leaflet-popup-close-button {
+      color: var(--text-muted) !important;
+      font-size: 18px !important;
+      top: 6px !important;
+      right: 10px !important;
+    }
+
+    /* Pulse animation for current marker */
+    @keyframes pulseRing {
+      0%   { transform: translate(-50%,-50%) scale(0.25); opacity: 0.9; }
+      100% { transform: translate(-50%,-50%) scale(2.6);  opacity: 0; }
+    }
+
+    /* ================================================================
+       PHOTOS
+    ================================================================ */
+    .photos-section { margin-bottom: 28px; }
+
+    .photos-grid {
+      display: flex;
+      gap: 16px;
+    }
+
+    .photo-card {
+      flex: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      background: var(--card);
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .photo-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    .photo-caption {
+      padding: 10px 14px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .photo-caption::before {
+      content: '';
+      width: 3px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.82);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 12px;
+      box-shadow: 0 16px 64px rgba(0,0,0,0.5);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 28px;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+
+    .lightbox-close:hover { opacity: 1; }
+
+    /* ================================================================
+       TIMELINE
+    ================================================================ */
+    .timeline-section { margin-bottom: 28px; }
+
+    .tl-outer {
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .tl-outer::-webkit-scrollbar        { height: 4px; }
+    .tl-outer::-webkit-scrollbar-track  { background: transparent; }
+    .tl-outer::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 2px; }
+
+    .tl-inner {
+      display: flex;
+      align-items: flex-start;
+      min-width: max-content;
+      position: relative;
+      padding: 0 20px;
+    }
+
+    /* Connecting track line */
+    .tl-inner::before {
+      content: '';
+      position: absolute;
+      top: 46px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: linear-gradient(90deg,
+        var(--sage)    0%,
+        var(--sage)    var(--past-w, 0%),
+        var(--accent)  var(--past-w, 0%),
+        var(--border)  calc(var(--past-w, 0%) + 8px),
+        var(--border)  100%
+      );
+      z-index: 0;
+    }
+
+    .tl-stop {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 160px;
+      min-width: 160px;
+      position: relative;
+      z-index: 1;
+      cursor: pointer;
+      padding-top: 39px;
+    }
+
+    /* Dots */
+    .tl-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      margin-bottom: 10px;
+      transition: box-shadow 0.2s;
+    }
+
+    .tl-stop.past .tl-dot {
+      background: var(--sage);
+      border-color: var(--sage);
+    }
+
+    .tl-stop.current .tl-dot {
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(224,122,95,0.2), 0 0 12px rgba(224,122,95,0.4);
+      width: 18px;
+      height: 18px;
+      margin-top: -2px;
+    }
+
+    .tl-stop.future .tl-dot {
+      background: #FFFFFF;
+      border-color: var(--border-hi);
+    }
+
+    /* Cards */
+    .tl-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      width: 148px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      transition: border-color 0.2s, transform 0.15s, box-shadow 0.15s;
+    }
+
+    .tl-stop:hover .tl-card {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.09);
+    }
+
+    .tl-stop.past .tl-card {
+      background: var(--sage-light);
+      border-color: #C2DAD0;
+    }
+
+    .tl-stop.current .tl-card {
+      background: var(--terra-light);
+      border-color: var(--accent);
+      box-shadow: 0 4px 16px rgba(224,122,95,0.14);
+    }
+
+    .tl-stop.future .tl-card {
+      background: #FAFAFA;
+      border-color: var(--border);
+    }
+
+    .tl-city {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tl-stop.past    .tl-city { color: var(--past-text); }
+    .tl-stop.current .tl-city { color: var(--accent); }
+    .tl-stop.future  .tl-city { color: var(--text-muted); }
+
+    .tl-date {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+      letter-spacing: 0.03em;
+    }
+
+    .tl-badge {
+      font-size: 0.65rem;
+      margin-top: 5px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .tl-stop.past    .tl-badge { color: var(--sage); }
+    .tl-stop.current .tl-badge { color: var(--accent); }
+    .tl-stop.future  .tl-badge { color: var(--text-muted); }
+
+    .tl-drive {
+      position: absolute;
+      top: 6px;
+      left: -80px;
+      width: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      font-size: 0.6rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      line-height: 1.35;
+      pointer-events: none;
+    }
+
+    .tl-km  { color: var(--accent2); }
+    .tl-hrs { color: var(--accent); }
+
+    /* ================================================================
+       FOOTER
+    ================================================================ */
+    .footer {
+      background: #FFFFFF;
+      text-align: center;
+      padding: 18px 36px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.04em;
+    }
+
+    /* ================================================================
+       RESPONSIVE
+    ================================================================ */
+    @media (max-width: 860px) {
+      .cards-row { grid-template-columns: 1fr; }
+      .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .header-right { text-align: left; }
+      .main { padding: 20px 18px 32px; }
+      .h-title { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ================================================================
+     HEADER
+================================================================ -->
+<header class="header">
+  <div class="header-left">
+    <div class="h-title">David's North America Road Trip 2026</div>
+    <div class="h-subtitle">Durham NC &nbsp;&rsaquo;&rsaquo;&nbsp; Anchorage AK</div>
+  </div>
+  <div class="h-hero-photo" onclick="openLightbox('photos/Ferrari.jpeg')">
+    <img src="photos/Ferrari.jpeg" alt="Ferrari on the road" />
+  </div>
+  <div class="header-right">
+    <div class="h-date" id="h-date">Saturday, May 23</div>
+    <div class="h-vienna" id="h-vienna">--:--:--</div>
+    <div class="h-vienna-label">Vienna Time</div>
+  </div>
+</header>
+
+<!-- ================================================================
+     MAIN
+================================================================ -->
+<main class="main">
+
+  <!-- CARDS ROW -->
+  <div class="cards-row">
+
+    <!-- LEFT: CURRENT STATUS -->
+    <div class="card status-card">
+      <div class="card-label">&#11044; Current Location</div>
+      <div id="cs-city"    class="cs-city">Loading&hellip;</div>
+      <div id="cs-country" class="cs-country"></div>
+      <div id="cs-hotel"   class="cs-hotel"></div>
+
+      <div class="time-grid">
+        <div class="time-block">
+          <div class="tb-avatar" onclick="openLightbox('photos/David and Mark.jpeg')">
+            <img src="photos/David and Mark.jpeg" alt="David and Mark" />
+          </div>
+          <div class="tb-text">
+            <div class="tb-label" id="tb-local-label">Local</div>
+            <div class="tb-clock" id="tb-local">--:--:--</div>
+            <div class="tb-date"  id="tb-local-date"></div>
+            <div class="tb-offset" id="tb-offset"></div>
+          </div>
+        </div>
+        <div class="time-block">
+          <div class="tb-label">Vienna</div>
+          <div class="tb-clock" id="tb-vienna">--:--:--</div>
+          <div class="tb-date"  id="tb-vienna-date"></div>
+        </div>
+      </div>
+
+      <!-- Weather -->
+      <div class="weather-section">
+        <div class="card-label">Weather</div>
+        <div class="weather-main">
+          <div class="w-icon" id="w-icon">&#x23F3;</div>
+          <div class="w-right">
+            <div class="w-temp" id="w-temp">--&deg;C</div>
+            <div class="w-desc" id="w-desc">Fetching weather&hellip;</div>
+          </div>
+        </div>
+        <div class="w-details">
+          <div class="w-pill">Feels like <b id="w-feels">--</b></div>
+          <div class="w-pill">Humidity <b id="w-hum">--</b></div>
+          <div class="w-pill">Wind <b id="w-wind">--</b></div>
+          <div class="w-pill">Visibility <b id="w-vis">--</b></div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="prog-section">
+        <div class="prog-header">
+          <span id="prog-label">Trip Progress</span>
+          <span class="prog-pct" id="prog-pct">--%</span>
+        </div>
+        <div class="prog-bar">
+          <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: NEXT STOP -->
+    <div class="card next-card">
+      <div class="card-label">&#10145; Next Stop</div>
+      <div id="nc-city"    class="nc-city">--</div>
+      <div id="nc-country" class="nc-country"></div>
+      <div id="nc-hotel"   class="nc-hotel"></div>
+
+      <div class="nc-divider"></div>
+
+      <div class="nc-countdown">
+        <div class="nc-days"        id="nc-days">--</div>
+        <div class="nc-days-label"  id="nc-days-label">days until departure</div>
+        <div class="nc-depart-date" id="nc-depart-date"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-section">
+    <div class="sec-label">Route Map</div>
+    <div id="map"></div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+    <img id="lightbox-img" src="" alt="" />
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-section">
+    <div class="sec-label">Full Route &mdash; 16 Stops</div>
+    <div class="tl-outer" id="tl-outer">
+      <div class="tl-inner" id="tl-inner"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  David's Road Trip Tracker &nbsp;&bull;&nbsp; Clocks update every second
+  &nbsp;&bull;&nbsp; Weather via wttr.in &nbsp;&bull;&nbsp; Map: Leaflet + CartoDB Positron
+</footer>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ===================================================================
+   TRAVEL DATA
+=================================================================== */
+const STOPS = [
+  {date:"2026-05-18", city:"Durham",           country:"USA",           hotel:"Fairfield by Marriott Durham",             lat:35.9940,  lon:-78.8986,  tz:"America/New_York",    dist:null,       drive:null},
+  {date:"2026-05-19", city:"Bethlehem",         country:"USA",           hotel:"Fairfield Inn & Suites Bethlehem PA",      lat:40.6259,  lon:-75.3705,  tz:"America/New_York",    dist:"650 km",   drive:"6h 30"},
+  {date:"2026-05-20", city:"Plattsburgh",       country:"USA",           hotel:"Fairfield Inn & Suites Plattsburgh",       lat:44.6995,  lon:-73.4529,  tz:"America/New_York",    dist:"430 km",   drive:"4h 30"},
+  {date:"2026-05-21", city:"Montreal",          country:"Canada",        hotel:"Residence Inn Montreal Midtown",           lat:45.5017,  lon:-73.5673,  tz:"America/Toronto",     dist:"95 km",    drive:"1h 15"},
+  {date:"2026-05-25", city:"Cochrane",          country:"Canada",        hotel:"Comfort Inn & Suites Cochrane",            lat:49.0594,  lon:-81.0144,  tz:"America/Toronto",     dist:"870 km",   drive:"9h 00"},
+  {date:"2026-05-26", city:"Thunder Bay",       country:"Canada",        hotel:"TownePlace Suites Thunder Bay",            lat:48.3809,  lon:-89.2477,  tz:"America/Toronto",     dist:"670 km",   drive:"7h 00"},
+  {date:"2026-05-27", city:"Winnipeg",          country:"Canada",        hotel:"Fairfield by Marriott Winnipeg",           lat:49.8951,  lon:-97.1384,  tz:"America/Winnipeg",    dist:"700 km",   drive:"7h 15"},
+  {date:"2026-05-28", city:"Calgary",           country:"Canada",        hotel:"Courtyard by Marriott Calgary Airport",    lat:51.0447,  lon:-114.0719, tz:"America/Edmonton",    dist:"1330 km",  drive:"13h 30"},
+  {date:"2026-05-29", city:"Hinton",            country:"Canada",        hotel:"Velora Hinton Hotel",                      lat:53.4068,  lon:-117.5634, tz:"America/Edmonton",    dist:"290 km",   drive:"3h 00"},
+  {date:"2026-05-30", city:"Dawson Creek",      country:"Canada",        hotel:"Staybridge Suites Dawson Creek",           lat:55.7596,  lon:-120.2367, tz:"America/Dawson_Creek",dist:"490 km",   drive:"5h 00"},
+  {date:"2026-06-01", city:"Liard Hot Springs", country:"Canada",        hotel:"Liard Hot Springs Lodge",                  lat:59.4263,  lon:-126.0986, tz:"America/Vancouver",   dist:"630 km",   drive:"6h 30"},
+  {date:"2026-06-02", city:"Whitehorse",        country:"Canada",        hotel:"Hyatt Place Whitehorse",                   lat:60.7212,  lon:-135.0568, tz:"America/Whitehorse",  dist:"470 km",   drive:"5h 00"},
+  {date:"2026-06-04", city:"Fairbanks",         country:"USA",           hotel:"SpringHill Suites Fairbanks",              lat:64.8378,  lon:-147.7164, tz:"America/Anchorage",   dist:"680 km",   drive:"7h 00"},
+  {date:"2026-06-05", city:"Anchorage",         country:"USA",           hotel:"Marriott Anchorage Downtown",              lat:61.2181,  lon:-149.9003, tz:"America/Anchorage",   dist:"510 km",   drive:"5h 30"},
+  {date:"2026-06-07", city:"Flying home",       country:"ANC → SEA → LHR", hotel:"Alaska Airlines + British Airways", lat:61.2181, lon:-149.9003, tz:"America/Anchorage",   dist:null,       drive:null},
+  {date:"2026-06-08", city:"Venice",            country:"Italy",         hotel:"Arrived home via VCE",                     lat:45.4408,  lon:12.3155,   tz:"Europe/Rome",         dist:null,       drive:null},
+];
+
+const VIENNA_TZ  = "Europe/Vienna";
+const TRIP_START = localDay("2026-05-18");
+const TRIP_END   = localDay("2026-06-08");
+const TOTAL_DAYS = dayDiff(TRIP_START, TRIP_END);
+
+/* ===================================================================
+   DATE HELPERS
+=================================================================== */
+function localDay(str) {
+  const [y,m,d] = str.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function dayDiff(a, b) {
+  return Math.round((b - a) / 86400000);
+}
+
+function today() {
+  const n = new Date();
+  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+}
+
+function getCurrentAndNext() {
+  const t = today();
+  let current = null, next = null;
+  for (const s of STOPS) {
+    if (localDay(s.date) <= t) current = s;
+    else if (!next)             next    = s;
+  }
+  return { current, next };
+}
+
+function getStopStatus(stop) {
+  const { current } = getCurrentAndNext();
+  const t = today();
+  const d = localDay(stop.date);
+  if (current && stop.date === current.date) return 'current';
+  if (d < t) return 'past';
+  return 'future';
+}
+
+/* ===================================================================
+   CLOCKS
+=================================================================== */
+function fmtTime(date, tz) {
+  return date.toLocaleTimeString('en-GB', {
+    timeZone: tz, hour:'2-digit', minute:'2-digit', second:'2-digit', hour12: false
+  });
+}
+
+function fmtDate(date, tz) {
+  return date.toLocaleDateString('en-GB', {
+    timeZone: tz, weekday:'short', day:'numeric', month:'short'
+  });
+}
+
+function tzOffsetLabel(tz1, tz2) {
+  const now = new Date();
+  const d1 = new Date(now.toLocaleString('en-US', { timeZone: tz1 }));
+  const d2 = new Date(now.toLocaleString('en-US', { timeZone: tz2 }));
+  let h = Math.round((d1 - d2) / 3600000);
+  if (h >  14) h -= 24;
+  if (h < -14) h += 24;
+  if (h === 0) return 'same as Vienna';
+  return h > 0 ? `+${h}h vs Vienna` : `${h}h vs Vienna`;
+}
+
+function tickClocks() {
+  const now = new Date();
+  const { current } = getCurrentAndNext();
+
+  // Header
+  document.getElementById('h-date').textContent   = fmtDate(now, VIENNA_TZ);
+  document.getElementById('h-vienna').textContent = fmtTime(now, VIENNA_TZ);
+
+  // Vienna block
+  document.getElementById('tb-vienna').textContent      = fmtTime(now, VIENNA_TZ);
+  document.getElementById('tb-vienna-date').textContent = fmtDate(now, VIENNA_TZ);
+
+  // Local block
+  if (current && current.city !== 'Flying home') {
+    const tz = current.tz;
+    document.getElementById('tb-local').textContent       = fmtTime(now, tz);
+    document.getElementById('tb-local-date').textContent  = fmtDate(now, tz);
+    document.getElementById('tb-local-label').textContent = current.city;
+    document.getElementById('tb-offset').textContent      = tzOffsetLabel(tz, VIENNA_TZ);
+  }
+}
+
+/* ===================================================================
+   WEATHER
+=================================================================== */
+function descToEmoji(desc) {
+  const d = (desc || '').toLowerCase();
+  if (d.includes('blizzard'))                       return '☃️';
+  if (d.includes('thunder') || d.includes('storm')) return '⛈️';
+  if (d.includes('heavy rain') || d.includes('torrential')) return '\u{1F327}️';
+  if (d.includes('drizzle') || d.includes('light rain'))    return '\u{1F326}️';
+  if (d.includes('rain') || d.includes('shower'))           return '\u{1F327}️';
+  if (d.includes('snow') || d.includes('sleet'))  return '❄️';
+  if (d.includes('fog')  || d.includes('mist'))   return '\u{1F32B}️';
+  if (d.includes('overcast'))                      return '☁️';
+  if (d.includes('partly cloudy'))                 return '⛅';
+  if (d.includes('cloud'))                         return '\u{1F324}️';
+  if (d.includes('sunny') || d.includes('clear'))  return '☀️';
+  return '\u{1F321}️';
+}
+
+async function fetchWeather(city) {
+  const id = (s, v) => { document.getElementById(s).textContent = v; };
+  try {
+    const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`, {
+      cache: 'no-cache'
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d    = await res.json();
+    const c    = d.current_condition[0];
+    const desc = c.weatherDesc[0].value;
+
+    id('w-icon',  descToEmoji(desc));
+    id('w-temp',  `${c.temp_C}°C / ${c.temp_F}°F`);
+    id('w-desc',  desc);
+    id('w-feels', `${c.FeelsLikeC}°C`);
+    id('w-hum',   `${c.humidity}%`);
+    id('w-wind',  `${c.windspeedKmph} km/h`);
+    id('w-vis',   `${c.visibility} km`);
+  } catch(e) {
+    id('w-icon', '⚠️');
+    id('w-desc', 'Weather unavailable — CORS may be blocked from file://');
+    console.warn('Weather fetch failed:', e.message);
+  }
+}
+
+/* ===================================================================
+   CARDS
+=================================================================== */
+function buildCards() {
+  const { current, next } = getCurrentAndNext();
+  const t = today();
+
+  /* ---- current card ---- */
+  if (!current) {
+    document.getElementById('cs-city').textContent    = 'Trip not started yet';
+    document.getElementById('cs-country').textContent = '';
+    document.getElementById('cs-hotel').textContent   = `First stop: ${STOPS[0].city} on ${STOPS[0].date}`;
+    return;
+  }
+
+  const isTransit = current.city === 'Flying home';
+  document.getElementById('cs-city').textContent    = isTransit ? '✈️ In Transit' : current.city;
+  document.getElementById('cs-country').textContent = current.country;
+  document.getElementById('cs-hotel').textContent   = current.hotel;
+
+  fetchWeather(isTransit ? 'Anchorage' : current.city);
+
+  const dayNum = dayDiff(TRIP_START, t) + 1;
+  const pct    = Math.min(100, Math.round((dayNum / TOTAL_DAYS) * 100));
+  document.getElementById('prog-label').textContent = `Day ${dayNum} of ${TOTAL_DAYS}`;
+  document.getElementById('prog-pct').textContent   = `${pct}%`;
+  document.getElementById('prog-fill').style.width  = pct + '%';
+
+  /* ---- next card ---- */
+  if (!next) {
+    document.getElementById('nc-city').textContent       = 'Home!';
+    document.getElementById('nc-days').textContent       = '\u{1F3C1}';
+    document.getElementById('nc-days-label').textContent = 'journey complete';
+    document.getElementById('nc-depart-date').textContent = 'The adventure is over.';
+    return;
+  }
+
+  const nextDate  = localDay(next.date);
+  const daysUntil = dayDiff(t, nextDate);
+  const isFlying  = next.city === 'Flying home';
+
+  document.getElementById('nc-city').textContent    = isFlying ? '✈️ Fly Home' : next.city;
+  document.getElementById('nc-country').textContent = next.country;
+  document.getElementById('nc-hotel').textContent   = next.hotel;
+
+  if (daysUntil === 0) {
+    document.getElementById('nc-days').textContent       = 'TODAY';
+    document.getElementById('nc-days-label').textContent = 'checkout this morning';
+    document.getElementById('nc-depart-date').textContent = '';
+  } else {
+    document.getElementById('nc-days').textContent       = daysUntil;
+    document.getElementById('nc-days-label').textContent = daysUntil === 1 ? 'day until departure' : 'days until departure';
+    document.getElementById('nc-depart-date').textContent = nextDate.toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric'
+    });
+  }
+}
+
+/* ===================================================================
+   MAP  — CartoDB Positron (light tiles), warm colour scheme
+=================================================================== */
+function buildMap() {
+  const map = L.map('map', { center:[52,-100], zoom:3, zoomControl:true });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  const { current } = getCurrentAndNext();
+  const t = today();
+
+  // Build separate coordinate lists for past / future polylines
+  const pastCoords   = [];
+  const futureCoords = [];
+
+  for (const s of STOPS) {
+    if (s.city === 'Venice') continue;
+    const coord  = [s.lat, s.lon];
+    const d      = localDay(s.date);
+    const isCur  = current && s.date === current.date;
+
+    if (isCur) {
+      pastCoords.push(coord);
+      futureCoords.push(coord);
+    } else if (d < t) {
+      pastCoords.push(coord);
+    } else {
+      futureCoords.push(coord);
+    }
+  }
+
+  // Past route — sage green, solid
+  if (pastCoords.length > 1) {
+    L.polyline(pastCoords, {
+      color: '#81B29A', weight: 3.5, opacity: 0.75
+    }).addTo(map);
+  }
+
+  // Future route — terracotta, dashed
+  if (futureCoords.length > 1) {
+    L.polyline(futureCoords, {
+      color: '#E07A5F', weight: 2.5, opacity: 0.55, dashArray: '7 10'
+    }).addTo(map);
+  }
+
+  /* --- MARKERS --- */
+  STOPS.forEach(s => {
+    if (s.city === 'Flying home') return;
+
+    const d      = localDay(s.date);
+    const isCur  = current && s.date === current.date;
+    const isPast = d < t && !isCur;
+
+    const popupHtml = `<div class="popup-inner">
+      <div class="popup-city">${s.city}</div>
+      <div class="popup-hotel">${s.hotel}</div>
+      <div class="popup-date">${s.date} &nbsp;&bull;&nbsp; ${s.country}</div>
+    </div>`;
+
+    if (isCur) {
+      // Terracotta pulsing marker
+      const icon = L.divIcon({
+        className: '',
+        iconSize:   [44, 44],
+        iconAnchor: [22, 22],
+        popupAnchor:[0, -22],
+        html: `<div style="position:relative;width:44px;height:44px;">
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+            width:16px;height:16px;background:#E07A5F;border-radius:50%;
+            box-shadow:0 0 0 3px #fff,0 0 14px rgba(224,122,95,0.6);z-index:3;"></div>
+          <div style="position:absolute;top:50%;left:50%;
+            border:2px solid #E07A5F;border-radius:50%;width:38px;height:38px;
+            animation:pulseRing 1.9s ease-out infinite;z-index:2;"></div>
+          <div style="position:absolute;top:50%;left:50%;
+            border:2px solid #E07A5F;border-radius:50%;width:38px;height:38px;
+            animation:pulseRing 1.9s ease-out 0.65s infinite;z-index:2;"></div>
+        </div>`
+      });
+      L.marker([s.lat, s.lon], {icon}).bindPopup(popupHtml).addTo(map).openPopup();
+
+    } else if (isPast) {
+      // Sage green past dots
+      L.circleMarker([s.lat, s.lon], {
+        radius: 5.5, color: '#5f9b84', fillColor: '#81B29A', fillOpacity: 0.85, weight: 1.5
+      }).bindPopup(popupHtml).addTo(map);
+
+    } else if (s.city === 'Venice') {
+      // Purple home marker
+      L.circleMarker([s.lat, s.lon], {
+        radius: 7, color: '#7c5cbf', fillColor: '#9B7FCA', fillOpacity: 0.85, weight: 2
+      }).bindPopup(`<div class="popup-inner">
+        <div class="popup-city">\u{1F3E0} ${s.city} &mdash; Home!</div>
+        <div class="popup-hotel">${s.hotel}</div>
+        <div class="popup-date">${s.date}</div>
+      </div>`).addTo(map);
+
+    } else {
+      // Steel blue future dots
+      L.circleMarker([s.lat, s.lon], {
+        radius: 5.5, color: '#2d6aa0', fillColor: '#3D7AB5', fillOpacity: 0.7, weight: 1.5
+      }).bindPopup(popupHtml).addTo(map);
+    }
+  });
+
+  // Fit to North America
+  const naBounds = L.latLngBounds(
+    STOPS.filter(s => s.country !== 'Italy').map(s => [s.lat, s.lon])
+  );
+  map.fitBounds(naBounds, { padding: [50, 50] });
+}
+
+/* ===================================================================
+   TIMELINE
+=================================================================== */
+function buildTimeline() {
+  const { current } = getCurrentAndNext();
+  const t     = today();
+  const inner = document.getElementById('tl-inner');
+
+  let currentIdx = STOPS.findIndex(s => current && s.date === current.date);
+  if (currentIdx >= 0) {
+    const pctW = Math.round((currentIdx / (STOPS.length - 1)) * 100);
+    inner.style.setProperty('--past-w', pctW + '%');
+  }
+
+  STOPS.forEach((s, idx) => {
+    const d      = localDay(s.date);
+    const isCur  = current && s.date === current.date;
+    const isPast = d < t && !isCur;
+    const cls    = isCur ? 'current' : isPast ? 'past' : 'future';
+    const fly    = s.city === 'Flying home';
+
+    const dateLabel = new Date(s.date + 'T12:00:00').toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric'
+    });
+
+    const badge = isCur ? '&#9679; HERE NOW'
+      : isPast ? '&#10003; visited'
+      : fly    ? '&#9992;&#65039; fly day'
+      : '&#9675; upcoming';
+
+    const cityDisplay = fly ? '&#9992;&#65039; Fly Home' : s.city;
+
+    const driveHtml = (s.dist && s.drive)
+      ? `<div class="tl-drive">
+           <span class="tl-km">${s.dist}</span>
+           <span class="tl-hrs">${s.drive}</span>
+         </div>`
+      : `<div class="tl-drive"></div>`;
+
+    const div = document.createElement('div');
+    div.className = `tl-stop ${cls}`;
+    div.id = `tl-${idx}`;
+    div.innerHTML = `
+      ${driveHtml}
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-city">${cityDisplay}</div>
+        <div class="tl-date">${dateLabel}</div>
+        <div class="tl-badge">${badge}</div>
+      </div>`;
+    inner.appendChild(div);
+  });
+
+  // Scroll current stop into view
+  if (currentIdx >= 0) {
+    setTimeout(() => {
+      const el  = document.getElementById(`tl-${currentIdx}`);
+      const box = document.getElementById('tl-outer');
+      if (el && box) {
+        const target = el.offsetLeft - (box.clientWidth / 2) + (el.offsetWidth / 2);
+        box.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+      }
+    }, 400);
+  }
+}
+
+/* ===================================================================
+   LIGHTBOX
+=================================================================== */
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+/* ===================================================================
+   INIT
+=================================================================== */
+function init() {
+  buildCards();
+  tickClocks();
+  setInterval(tickClocks, 1000);
+  buildMap();
+  buildTimeline();
+}
+
+window.addEventListener('load', init);
+</script>
+
+</body>
+</html>
