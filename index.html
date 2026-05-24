@@ -546,6 +546,21 @@
       letter-spacing: 0.04em;
     }
 
+    .popup-drive {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .popup-km  { color: var(--accent2); }
+    .popup-hrs { color: var(--accent); }
+    .popup-drive-sep { color: var(--text-muted); font-weight: 400; }
+
     .leaflet-popup-close-button {
       color: var(--text-muted) !important;
       font-size: 18px !important;
@@ -1277,10 +1292,20 @@ function buildMap() {
     const isCur  = current && s.date === current.date;
     const isPast = d < t && !isCur;
 
+    const popupDate = new Date(s.date + 'T12:00:00')
+      .toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+    const popupDrive = (s.dist && s.drive)
+      ? `<div class="popup-drive">
+           <span class="popup-km">${s.dist}</span>
+           <span class="popup-drive-sep">&middot;</span>
+           <span class="popup-hrs">${s.drive}</span>
+         </div>`
+      : '';
     const popupHtml = `<div class="popup-inner">
       <div class="popup-city">${s.city}</div>
+      <div class="popup-date">${popupDate} &nbsp;&bull;&nbsp; ${s.country}</div>
       <div class="popup-hotel">${s.hotel}</div>
-      <div class="popup-date">${s.date} &nbsp;&bull;&nbsp; ${s.country}</div>
+      ${popupDrive}
     </div>`;
 
     if (isCur) {
